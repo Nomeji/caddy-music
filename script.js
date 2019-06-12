@@ -1,104 +1,10 @@
 // if you have better idea try #qa @ irc.lolicore.org
+// This code was originaly created by someone from lolicore.org
+// It doesn't belong to me.
 
 var playarrow = "▶";
-var sortup = "▲";
-var sortdn = "▼";
-
-function table_sort(table,column,asc) {
-	var pattern = /<tr><td.*?><.+?>(.+?)<\/a><\/td><td><.+?>[^ ]+ (.+?) (..)<\/a><\/td><td>(.+?)<\/td><\/tr>/g;
-	var files = [];
-	var dirs = [];
-	var match;
-	var tb = table.getElementsByTagName("tbody")[0];
-	rt = tb.innerHTML;
-
-	while (match = pattern.exec(rt)) {
-		if (match[1].indexOf("/") >= 0)
-			dirs.push(match);
-		else
-			files.push(match);
-	}
-
-	var scale = {
-		"GB": 1024*1024,
-		"MB": 1024,
-		"KB": 1
-	}
-
-	function wrapnum(n) {
-		var m = n.match(/^([0-9]+)(.*)/);
-		if (!m) return n;
-		var n = m[1];
-		while (n.length < 8)
-			n = '0' + n
-		return n + m[2];
-	}
-
-	var cmpfun = function(a,b) {
-		if (a[1].match("Parent directory"))
-			return -1;
-		if (b[1].match("Parent directory"))
-			return 1;
-		if (asc) {
-			var t = a;
-			a = b;
-			b = t;
-		}
-		if (column == 0) {
-			var x = wrapnum(a[1]);
-			var y = wrapnum(b[1]);
-			if (x > y)
-				return 1;
-			if (x < y)
-				return -1;
-			return 0;
-		}
-		if (column == 2) {
-			if (a[4] > b[4])
-				return 1;
-			if (a[4] < b[4]);
-				return -1;
-			return 0;
-		}
-		if (column == 1)
-			return parseFloat(a[2]) * scale[a[3]] -
-				parseFloat(b[2]) * scale[b[3]];
-	}
-	dirs.sort(cmpfun);
-	files.sort(cmpfun);
-	var i;
-	var res = [];
-	for (i = 0; i < dirs.length; i++)
-		res.push(dirs[i][0]);
-	for (i = 0; i < files.length; i++)
-		res.push(files[i][0]);
-	tb.innerHTML = res.join("").replace(/▶/g, "");
-}
 
 function do_sort(t, col) {
-	// var asc;
-	// if (col === undefined) {
-	// 	col = parseInt(localStorage.sortcolumn||"0");
-	// }
-	// var hdr = t.getElementsByTagName("th");
-	// var i;
-	// if (hdr[col].innerHTML.indexOf(sortup) >= 0) {
-	// 	asc = false;
-	// } else if (hdr[col].innerHTML.indexOf(sortdn) >= 0) {
-	// 	asc = true;
-	// } else {
-	// 	asc = JSON.parse(localStorage.sortdir || "false");
-	// }
-	// localStorage.sortdir = asc;
-	// localStorage.sortcolumn = col;
-
-	// for (i = 0; i < 3; i++) {
-	// 	hdr[i].innerHTML =
-	// 		hdr[i].innerHTML.replace(sortup,"").replace(sortdn, "")
-	// }
-	// hdr[col].innerHTML = hdr[col].innerHTML + (asc?sortup:sortdn);
-	// table_sort(t, col, asc);
-	console.log("hook player");
 	setTimeout(hook_player, 0);
 }
 
@@ -136,14 +42,6 @@ function hook_player() {
 	tracks = [];
 	for (i = 0; i < links.length; i++) {
 		var l = links[i];
-		//var h = links[i-1].href;
-		// if (lastdir && h.substr(h.length - lastdir.length) == lastdir) {
-		// 	if (l.href.substr(l.href.length-1) == "/") {
-		// 		localStorage.autoplay = "1";
-		// 		document.location = l.href;
-		// 		return;
-		// 	}
-		// }
 		if (l.href.match(/\.(mp3|ogg|wav|flac|m4a)$/i)) {
 			havemp3 = true;
 			l.insertAdjacentHTML('afterbegin', playarrow);
@@ -164,21 +62,20 @@ function hook_player() {
 				sv = decodeURIComponent(sv);
 			} catch (e) {};
 			sv = sv.substr(sv.length - hv.length);
-//			hv = decodeURIComponent(hv);
-//			sv = decodeURIComponent(sv);
-//			console.log(hv);
-//			console.log(sv);
 			if (hv == sv) {
 				current = tracks.length;
 				playnow = true;
 			}
 			tracks.push(l);
 		}
-	}
-	if (!havemp3) {
-/*		if (localStorage.autoplay)
-			jump_dir();*/
-		return;
+		if (l.href.match(/cover\.(jpg|png)$/i)) {
+			var img = document.createElement("img");
+			img.src = l.href;
+			img.alt = "cover"
+			img.id = "cover"
+			var listing = document.getElementsByClassName("listing")[0];
+			listing.appendChild(img);
+		}
 	}
 	var pl = document.getElementById('player');
 	if (!haveplayer) {
